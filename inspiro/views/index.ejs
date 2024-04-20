@@ -42,34 +42,46 @@
         document.getElementById('generate').addEventListener('click', () => {
 
             const messageToSend = document.getElementById('message_input').value;
-            const vpisnaToSend = document.getElementById('vpisna_st').value;
+            const vpisna = document.getElementById('vpisna_st').value;
 
-            fetch()
-
-            fetch('/inspiro-generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: messageToSend,
-                    vpisnaSt: vpisnaToSend
-                })
-            })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        throw new Error('Failed to send text to server');
-                    }
-                })
-                .then(data => {
-                    console.log('Response from server:', data);
-                    document.getElementById('response_message').textContent = data.aiResponse;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+            async function getUrnik() {
+                const urnikResponse = await fetch(`https://urnik.fri.uni-lj.si/timetable/fri-2023_2024-letni-1-17/allocations?student=${vpisna}`);
+                const urnikHTML = await urnikResponse.text();
+                const doc = new DOMParser().parseFromString(urnikHTML, 'text/html');
+                let urnik = [];
+                doc.querySelectorAll('.entry-hover').forEach((el) => {
+                    urnik.push(el.childNodes[0]);
                 });
+                console.log(urnik);
+                return urnik;
+            }
+
+            getUrnik().then(urnik => {
+                fetch('/inspiro-generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: messageToSend,
+                        urnik: urnik
+                    })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error('Failed to send text to server');
+                        }
+                    })
+                    .then(data => {
+                        console.log('Response from server:', data);
+                        document.getElementById('response_message').textContent = data.aiResponse;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
         });
     });
 </script>
