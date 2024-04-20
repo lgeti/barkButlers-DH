@@ -28,7 +28,7 @@
         <input id="vpisna_st" type="text" placeholder="your vpisna st." value="63210116">
     </div>
 
-    <button id="send_message">Send</button>
+    <button id="generate">Send</button>
     <p id="response_message"></p>
 
 
@@ -39,10 +39,12 @@
 </body>
 <script>
     window.addEventListener('load', () => {
-        document.getElementById('send_message').addEventListener('click', () => {
+        document.getElementById('generate').addEventListener('click', () => {
 
             const messageToSend = document.getElementById('message_input').value;
             const vpisnaToSend = document.getElementById('vpisna_st').value;
+
+            fetch()
 
             fetch('/inspiro-generate', {
                 method: 'POST',

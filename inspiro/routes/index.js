@@ -30,6 +30,6 @@ router.post('/upload', upload.single('myFile'), function (req, res, next) {
     res.send('File uploaded!');
 });
 
-router.post('/inspiro-generate', openAIController.handleMessage);
+router.post('/inspiro-generate', openAIController.main);
 
 module.exports = router;
