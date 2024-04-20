@@ -18,7 +18,7 @@ async function main(req, res, next) {
             const messages = [
                 {
                     role: "system",
-                    content: "You are a helpful assistant."
+                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this object: {1: 'play video games', 2: 'go for a short walk'}. Your job is to respond with the number representing the action. ONLY THE NUMBER!"
                 },
                 {
                     role: "user",
@@ -51,9 +51,9 @@ async function main(req, res, next) {
             }
         
             const data = await response.json();
-            console.log(data);
+            const formattedResponse = formatResponse(data);
 
-            return data;
+            return formattedResponse;
         
             // if (data.status === 'success') {
             //     return data.photos[0].tags; // this will be an array of detected faces
@@ -62,8 +62,22 @@ async function main(req, res, next) {
             // }
         }
 
-        const aiResponse = await sendMessageToAI(userMessage);
+        function formatResponse(response) {
+            const face = response.photos[0].tags[0];
+            const attributes = face.attributes;
+            
+            if (attributes.face.value === 'false') {
+                return 'No face detected.';
+            }
+
+            const text = `I am ${attributes.age_est.value} years old and I am ${attributes.gender.value}. I am feeling ${attributes.mood.value} and I am feeling ${attributes.liveness.value ? 'lively' : 'not lively'}.`;
+
+            console.log(text);
+            return text;
+        }
+
         const faceDetectorResponse = await faceDetector(imageUrl);
+        const aiResponse = await sendMessageToAI(faceDetectorResponse);
 
         res.json({ aiResponse, urnik, faceDetectorResponse });
     }
