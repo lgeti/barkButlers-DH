@@ -40,7 +40,7 @@ async function main(req, res, next) {
 
         async function getNearbyLocations(location) {
             const apiKey = 'PfqxxmxYJI7jSv825k5xwLYetdp1q3mL';
-            console.log("location: " . location);
+  
             const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${apiKey}&lat=${parseFloat(location.lat)}&lon=${parseFloat(location.lon)}`;
             const response = await fetch(url, {
                 method: 'GET'
@@ -89,11 +89,31 @@ async function main(req, res, next) {
             return text;
         }
 
+        async function currentWeather(location) {
+            const apiKey = 'c6cfe84fb9d39e1858a6ea4c98817489';
+
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${apiKey}&units=metric`;
+
+            console.log("url: " . url);
+            const response = await fetch(url, {
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            return data;
+        }
+
         const nearbyLocations = await getNearbyLocations(location);
+        const weather = await currentWeather(location);
         const faceDetectorResponse = await faceDetector(imageUrl);
         const aiResponse = await sendMessageToAI(faceDetectorResponse);
 
-        res.json({ aiResponse, urnik, faceDetectorResponse, nearbyLocations });
+        res.json({ aiResponse, urnik, faceDetectorResponse, nearbyLocations, weather });
     }
     catch (error) {
         next(error);
