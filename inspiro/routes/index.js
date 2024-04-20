@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
+const openAIController = require('../controllers/openAIController');
+
 var path = require('path');
 var multer  = require('multer');
 
@@ -32,5 +34,7 @@ router.post('/upload', upload.single('myFile'), function(req, res, next) {
   console.log(req.file);
   res.send('File uploaded!');
 });
+
+router.get('/openAI', openAIController.handleMessage);
 
 module.exports = router;
