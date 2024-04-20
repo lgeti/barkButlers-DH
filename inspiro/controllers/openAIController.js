@@ -11,8 +11,18 @@ const client = new OpenAI({
 async function handleMessage(req, res, next) {
     try {
         const userMessage = req.body.message;
+        const vpisnaSt = req.body.vpisnaSt;
 
-        // Function to send a message to the AI and handle the response
+        async function readFRIUrnik(vpisnaSt) {
+            const response = await fetch(`https://urnik.fri.uni-lj.si/timetable/fri-2023_2024-letni-1-17/allocations?student=${vpisnaSt}`);
+            const html = await response.text();
+            return html;
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            return doc;
+            const selectedElement = doc.querySelector('.entry-hover');
+            return selectedElement;
+        }
+
         async function sendMessageToAI(userMessage) {
             const messages = [
                 {
@@ -34,10 +44,11 @@ async function handleMessage(req, res, next) {
             return aiContent;
         }
 
-        // Call the function to send the message to AI
+        const urnik = await readFRIUrnik(vpisnaSt);
+
         const aiResponse = await sendMessageToAI(userMessage);
 
-        res.json({ aiResponse });
+        res.json({ aiResponse, urnik });
     }
     catch (error) {
         next(error);
@@ -45,5 +56,5 @@ async function handleMessage(req, res, next) {
 }
 
 module.exports = {
-  handleMessage
+    handleMessage
 };
