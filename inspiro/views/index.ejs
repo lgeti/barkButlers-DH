@@ -5,6 +5,11 @@
     <title>
         <%= title %>
     </title>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <link rel='stylesheet' href='/stylesheets/style.css' />
 </head>
 
@@ -32,13 +37,30 @@
     <p id="response_message"></p>
 
 
-
+    <div id="map"></div>
 
 
 
 </body>
 <script>
+    let latitude;
+    let longitude;
     window.addEventListener('load', () => {
+        if ("geolocation" in navigator) {
+            // Request the user's current position
+            navigator.geolocation.getCurrentPosition(function (position) {
+                // Retrieve latitude and longitude
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+                const location = { lat: latitude, lon: longitude };
+                // Do something with the latitude and longitude, like display them on the webpage
+                console.log("Latitude: " + latitude + ", Longitude: " + longitude);
+            });
+        } else {
+            // Geolocation is not supported by the browser
+            console.log("Geolocation is not supported by this browser.");
+        }
+
         document.getElementById('generate').addEventListener('click', () => {
 
             const messageToSend = document.getElementById('message_input').value;
@@ -64,7 +86,8 @@
                     },
                     body: JSON.stringify({
                         message: messageToSend,
-                        urnik: urnik
+                        urnik: urnik,
+                        location: location
                     })
                 })
                     .then(response => {
@@ -77,6 +100,14 @@
                     .then(data => {
                         console.log('Response from server:', data);
                         document.getElementById('response_message').textContent = data.aiResponse;
+
+                        var map = L.map('map').setView([latitude, longitude], 20);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                        }).addTo(map);
+                        // Assuming trailData is your GeoJSON trail data
+                        // L.geoJSON(trailData).addTo(map);
                     })
                     .catch(error => {
                         console.error('Error:', error);

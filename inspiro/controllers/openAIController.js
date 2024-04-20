@@ -13,6 +13,8 @@ async function main(req, res, next) {
         const userMessage = req.body.message;
         const urnik = req.body.urnik;
         const imageUrl = "https://i.pinimg.com/736x/3d/90/7f/3d907f72a577dfcb702751b047e201c5.jpg";
+        const location = req.body.location;
+
 
         async function sendMessageToAI(userMessage) {
             const messages = [
@@ -35,6 +37,16 @@ async function main(req, res, next) {
             return aiContent;
         }
 
+
+        async function getNearbyLocations(location) {
+            const apiKey = 'PfqxxmxYJI7jSv825k5xwLYetdp1q3mL';
+            const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${apiKey}&lat=${location.lat}&lon=${location.lon}`;
+            const response = await fetch(url, {
+                method: 'GET'
+            });
+            return response;
+        }
+
         async function faceDetector(imageUrl) {
             const apiKey = 'r6ggfvdal68rs118rcmacn3a7v';
             const apiSecret = 'q9ojaqej6oejh587i3k9jeu0p8';
@@ -45,16 +57,16 @@ async function main(req, res, next) {
             const response = await fetch(url, {
                 method: 'POST'
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-        
+
             const data = await response.json();
             const formattedResponse = formatResponse(data);
 
             return formattedResponse;
-        
+
             // if (data.status === 'success') {
             //     return data.photos[0].tags; // this will be an array of detected faces
             // } else {
@@ -65,7 +77,7 @@ async function main(req, res, next) {
         function formatResponse(response) {
             const face = response.photos[0].tags[0];
             const attributes = face.attributes;
-            
+
             if (attributes.face.value === 'false') {
                 return 'No face detected.';
             }
@@ -76,10 +88,11 @@ async function main(req, res, next) {
             return text;
         }
 
+        const nearbyLocations = await getNearbyLocations(location);
         const faceDetectorResponse = await faceDetector(imageUrl);
         const aiResponse = await sendMessageToAI(faceDetectorResponse);
 
-        res.json({ aiResponse, urnik, faceDetectorResponse });
+        res.json({ aiResponse, urnik, faceDetectorResponse, nearbyLocations });
     }
     catch (error) {
         next(error);
