@@ -20,12 +20,7 @@ var upload = multer({ storage: storage });
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-    res.send(`
-    <form action="/upload" method="post" enctype="multipart/form-data">
-      <input type="file" name="myFile">
-      <button type="submit">Upload</button>
-    </form>
-  `);
+    res.render('index', { title: 'Inspiro' });
 });
 
 router.post('/upload', upload.single('myFile'), function (req, res, next) {
@@ -35,10 +30,6 @@ router.post('/upload', upload.single('myFile'), function (req, res, next) {
     res.send('File uploaded!');
 });
 
-router.get('/openAI', (req, res, next) => {
-    res.render('openAI', { title: 'OpenAI' });
-});
-
-router.post('/openAI', openAIController.handleMessage);
+router.post('/inspiro-generate', openAIController.handleMessage);
 
 module.exports = router;

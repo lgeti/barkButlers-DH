@@ -15,13 +15,23 @@
     <p>Welcome to <%= title %>
     </p>
 
-    <input type="file" name="myFile">
-    <button type="submit">Upload</button>
+    <div class="card">
+        <input type="file" name="myFile">
+        <button type="submit">Upload</button>
+    </div>
 
-    <input id="message_input" type="text" placeholder="your message">
+    <div class="card">
+        <input id="message_input" type="text" placeholder="your message">
+    </div>
+
+    <div class="card">
+        <input id="vpisna_st" type="text" placeholder="your vpisna st.">
+    </div>
+
     <button id="send_message">Send</button>
-
     <p id="response_message"></p>
+
+
 
 
 
@@ -32,13 +42,17 @@
         document.getElementById('send_message').addEventListener('click', () => {
 
             const messageToSend = document.getElementById('message_input').value;
+            const vpisnaToSend = document.getElementById('vpisna_st').value;
 
-            fetch('/openAI', {
+            fetch('/inspiro-generate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ text: messageToSend })
+                body: JSON.stringify({
+                    message: messageToSend,
+                    vpisnaSt: vpisnaToSend
+                })
             })
                 .then(response => {
                     if (response.ok) {

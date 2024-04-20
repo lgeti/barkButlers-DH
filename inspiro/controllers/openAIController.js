@@ -14,7 +14,6 @@ async function handleMessage(req, res, next) {
 
         // Function to send a message to the AI and handle the response
         async function sendMessageToAI(userMessage) {
-            userMessage = 'hello, how are you today';
             const messages = [
                 {
                     role: "system",
