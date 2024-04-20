@@ -18,10 +18,6 @@ var upload = multer({ storage: storage });
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
-
-router.get('/upload', function(req, res, next) {
   res.send(`
     <form action="/upload" method="post" enctype="multipart/form-data">
       <input type="file" name="myFile">
