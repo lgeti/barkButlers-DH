@@ -40,11 +40,13 @@ async function main(req, res, next) {
 
         async function getNearbyLocations(location) {
             const apiKey = 'PfqxxmxYJI7jSv825k5xwLYetdp1q3mL';
-            const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${apiKey}&lat=${location.lat}&lon=${location.lon}`;
+            console.log("location: " . location);
+            const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${apiKey}&lat=${parseFloat(location.lat)}&lon=${parseFloat(location.lon)}`;
             const response = await fetch(url, {
                 method: 'GET'
             });
-            return response;
+            const data = await response.json();
+            return data;
         }
 
         async function faceDetector(imageUrl) {
@@ -84,7 +86,6 @@ async function main(req, res, next) {
 
             const text = `I am ${attributes.age_est.value} years old and I am ${attributes.gender.value}. I am feeling ${attributes.mood.value} and I am feeling ${attributes.liveness.value ? 'lively' : 'not lively'}.`;
 
-            console.log(text);
             return text;
         }
 

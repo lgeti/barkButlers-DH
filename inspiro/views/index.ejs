@@ -54,7 +54,7 @@
                 longitude = position.coords.longitude;
                 const location = { lat: latitude, lon: longitude };
                 // Do something with the latitude and longitude, like display them on the webpage
-                console.log("Latitude: " + latitude + ", Longitude: " + longitude);
+                console.log("Latitude: " + location.lat + ", Longitude: " + location.lon);
             });
         } else {
             // Geolocation is not supported by the browser
@@ -87,7 +87,7 @@
                     body: JSON.stringify({
                         message: messageToSend,
                         urnik: urnik,
-                        location: location
+                        location: { lat: latitude, lon: longitude }
                     })
                 })
                     .then(response => {
