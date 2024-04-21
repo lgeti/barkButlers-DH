@@ -46,15 +46,20 @@
     </div>
     <p id="response_message"></p>
 
-
+    
+    
     <div id="map"></div>
-
+    
     <div id="alternative" style="display: none;"><h1>Alternative activity:</h1>
         <p style="font-size: 20px;" id="alternative_activity"></p>
     </div>
 
+    <div id="joke" style="display: none;"><h1>Joke:</h1>
+    <p id="jokeText"></p>
+    </div>
+    
     <br>
-    <p><b>Your info:</b></p>
+    <p id="info" style="display: none;"><b>Your info:</b></p>
     <p id="message_for_AI"></p>
 
 
@@ -197,12 +202,18 @@
                     .then(data => {
                         console.log('Response from server:', data);
                         document.getElementById('response_message').textContent = data.aiResponse;
+                        document.getElementById('info').style.display = 'block';
                         document.getElementById('message_for_AI').textContent = data.messageForAI;
                         if (data.boredAPIResponse) {
                             document.getElementById('alternative').style.display = 'flex';
                             document.getElementById('alternative').style.flexDirection = 'column';
                             document.getElementById('alternative').style.alignItems = 'center';
                             document.getElementById('alternative_activity').textContent = data.boredAPIResponse.activity;
+                        }
+                        if (data.jokeFromAI) {
+                            document.getElementById('joke').style.display = 'flex';
+                            document.getElementById('joke').style.flexDirection = 'column';
+                            document.getElementById('jokeText').textContent = data.jokeFromAI;
                         }
                         if (data.aiResponse === 'go for a short walk') {
                             var map = L.map('map').setView([latitude, longitude], 16);

@@ -145,15 +145,37 @@ async function main(req, res, next) {
             return data;
         }
 
+        async function getJokeFromAI(userProfile, activity) {
+            const messages = [
+                {
+                    role: "system",
+                    content: "Based on my profile and activity, write a personalized joke for me."
+                },
+                {
+                    role: "user",
+                    content: userProfile + ' ' + activity
+                }
+            ];
+
+            const response = await client.chat.completions.create({
+                model: "gpt-3.5-turbo",
+                messages: messages
+            });
+
+            const aiContent = response.choices[0].message.content;
+            return aiContent;
+        }
+
         const nearbyLocations = await getNearbyLocations(location);
         const weather = await currentWeather(location);
         const faceDetectorResponse = await faceDetector(imageUrl);
         const boredAPIResponse = await boredAPIActivity();
+        const jokeFromAI = await getJokeFromAI(faceDetectorResponse, boredAPIResponse.activity);
 
         const messageForAI = formatMessage(faceDetectorResponse, weather, userMessage);
         const aiResponse = await sendMessageToAI(messageForAI);
 
-        res.json({ aiResponse, freeMinutes, faceDetectorResponse, nearbyLocations, weather, messageForAI, boredAPIResponse });
+        res.json({ aiResponse, freeMinutes, faceDetectorResponse, nearbyLocations, weather, messageForAI, boredAPIResponse, jokeFromAI });
     }
     catch (error) {
         next(error);
