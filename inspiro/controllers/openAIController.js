@@ -132,14 +132,28 @@ async function main(req, res, next) {
             return message;
         }
 
+        async function boredAPIActivity() {
+            const response = await fetch('https://www.boredapi.com/api/activity?participants=1', {
+                method: 'GET'
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data;
+        }
+
         const nearbyLocations = await getNearbyLocations(location);
         const weather = await currentWeather(location);
         const faceDetectorResponse = await faceDetector(imageUrl);
+        const boredAPIResponse = await boredAPIActivity();
 
         const messageForAI = formatMessage(faceDetectorResponse, weather, userMessage);
         const aiResponse = await sendMessageToAI(messageForAI);
 
-        res.json({ aiResponse, freeMinutes, faceDetectorResponse, nearbyLocations, weather, messageForAI });
+        res.json({ aiResponse, freeMinutes, faceDetectorResponse, nearbyLocations, weather, messageForAI, boredAPIResponse });
     }
     catch (error) {
         next(error);
