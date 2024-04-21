@@ -49,6 +49,10 @@
 
     <div id="map"></div>
 
+    <div id="alternative" style="display: none;"><h1>Alternative activity:</h1>
+        <p style="font-size: 20px;" id="alternative_activity"></p>
+    </div>
+
     <br>
     <p><b>Your info:</b></p>
     <p id="message_for_AI"></p>
@@ -194,7 +198,12 @@
                         console.log('Response from server:', data);
                         document.getElementById('response_message').textContent = data.aiResponse;
                         document.getElementById('message_for_AI').textContent = data.messageForAI;
-
+                        if (data.boredAPIResponse) {
+                            document.getElementById('alternative').style.display = 'flex';
+                            document.getElementById('alternative').style.flexDirection = 'column';
+                            document.getElementById('alternative').style.alignItems = 'center';
+                            document.getElementById('alternative_activity').textContent = data.boredAPIResponse.activity;
+                        }
                         if (data.aiResponse === 'go for a short walk') {
                             var map = L.map('map').setView([latitude, longitude], 16);
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
