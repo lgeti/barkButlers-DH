@@ -11,9 +11,9 @@ const client = new OpenAI({
 async function main(req, res, next) {
     try {
         const userMessage = req.body.message;
-        const urnik = req.body.urnik;
         const imageUrl = "https://i.pinimg.com/736x/3d/90/7f/3d907f72a577dfcb702751b047e201c5.jpg";
         const location = req.body.location;
+        const freeMinutes = req.body.freeMinutes;
 
 
         async function sendMessageToAI(userMessage) {
@@ -40,8 +40,16 @@ async function main(req, res, next) {
 
         async function getNearbyLocations(location) {
             const newLocation = location;
-            newLocation.lat += ((Math.random() * 2) - 1) * 0.01;
-            newLocation.lon += ((Math.random() * 2) - 1) * 0.01;
+            let multiplier = 0.01;
+            if (freeMinutes > 120) {
+                multiplier = 0.02;
+            }
+            else if (freeMinutes > 1000) {
+                multiplier = 0.3;
+            }
+
+            newLocation.lat += ((Math.random() * 2) - 1) * multiplier;
+            newLocation.lon += ((Math.random() * 2) - 1) * multiplier;
 
             const apiKey = 'PfqxxmxYJI7jSv825k5xwLYetdp1q3mL';
   
@@ -113,7 +121,15 @@ async function main(req, res, next) {
         }
 
         const formatMessage = (faceDetectorResponse, weather, userMessage) => {
-            return faceDetectorResponse + 'The weather is:' + weather + '. This is what I am thinking right now: ' + userMessage;
+            let message;
+
+            message = faceDetectorResponse + 'The weather is: ' + weather + '. I have this many minutes until next thing on my calendar: ' + freeMinutes + '.';
+
+            if (userMessage != '') {
+                message += ' This is what I am thinking right now: ' + userMessage + '.';
+            }
+
+            return message;
         }
 
         const nearbyLocations = await getNearbyLocations(location);
@@ -123,7 +139,7 @@ async function main(req, res, next) {
         const messageForAI = formatMessage(faceDetectorResponse, weather, userMessage);
         const aiResponse = await sendMessageToAI(messageForAI);
 
-        res.json({ aiResponse, urnik, faceDetectorResponse, nearbyLocations, weather });
+        res.json({ aiResponse, freeMinutes, faceDetectorResponse, nearbyLocations, weather, messageForAI });
     }
     catch (error) {
         next(error);

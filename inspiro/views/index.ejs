@@ -49,6 +49,10 @@
 
     <div id="map"></div>
 
+    <br>
+    <p><b>Your info:</b></p>
+    <p id="message_for_AI"></p>
+
 
 
 </body>
@@ -112,19 +116,62 @@
             const messageToSend = document.getElementById('message_input').value;
             const vpisna = document.getElementById('vpisna_st').value;
 
-            async function getUrnik() {
+            async function getFreeMinutes() {
                 const urnikResponse = await fetch(`https://urnik.fri.uni-lj.si/timetable/fri-2023_2024-letni-1-17/allocations?student=${vpisna}`);
                 const urnikHTML = await urnikResponse.text();
                 const doc = new DOMParser().parseFromString(urnikHTML, 'text/html');
-                let urnik = [];
+                let minuteDifferences = [];
                 doc.querySelectorAll('.entry-hover').forEach((el) => {
-                    urnik.push(el.childNodes[0]);
+                    const stvarNaUrniku = el.childNodes[0].textContent.trim();
+                    let [day, targetTime, _, targetEndTime] = stvarNaUrniku.split(' ');
+                    let [targetHour, targetMinute] = targetTime.split(':');
+
+                    let targetDay;
+                    switch (day) {
+                        case 'ponedeljek': targetDay = 1; break;
+                        case 'torek': targetDay = 2; break;
+                        case 'sreda': targetDay = 3; break;
+                        case 'četrtek': targetDay = 4; break;
+                        case 'petek': targetDay = 5; break;
+                        case 'sobota': targetDay = 6; break;
+                        case 'nedelja': targetDay = 0; break;
+
+                        default:
+                            console.log('neki si zasrou');
+                            break;
+                    }
+
+                    const currentDate = new Date();
+                    const currentDay = currentDate.getDay();
+                    const currentHour = currentDate.getHours();
+                    const currentMinute = currentDate.getMinutes();
+                    console.log(currentDay, currentHour);
+
+                    let dayDifference = targetDay - currentDay;
+                    if (dayDifference < 0) {
+                        dayDifference += 7;
+                    }
+                    let hourDifference = targetHour - currentHour;
+                    if (hourDifference < 0) {
+                        hourDifference += 24;
+                    }
+                    let minuteDifference = targetMinute - currentMinute;
+                    if (minuteDifference < 0) {
+                        minuteDifference += 60;
+                        hourDifference--;
+                    }
+
+                    console.log(dayDifference, hourDifference, minuteDifference);
+
+                    const totalMinuteDifference = dayDifference * 24 * 60 + hourDifference * 60 + minuteDifference;
+
+                    minuteDifferences.push(totalMinuteDifference);
                 });
-                console.log(urnik);
-                return urnik;
+
+                return minuteDifferences;
             }
 
-            getUrnik().then(urnik => {
+            getFreeMinutes().then(freeMinutesArr => {
                 fetch('/inspiro-generate', {
                     method: 'POST',
                     headers: {
@@ -132,8 +179,8 @@
                     },
                     body: JSON.stringify({
                         message: messageToSend,
-                        urnik: urnik,
-                        location: { lat: latitude, lon: longitude }
+                        location: { lat: latitude, lon: longitude },
+                        freeMinutes: Math.min(...freeMinutesArr)
                     })
                 })
                     .then(response => {
@@ -146,6 +193,7 @@
                     .then(data => {
                         console.log('Response from server:', data);
                         document.getElementById('response_message').textContent = data.aiResponse;
+                        document.getElementById('message_for_AI').textContent = data.messageForAI;
 
                         if (data.aiResponse === 'go for a short walk') {
                             var map = L.map('map').setView([latitude, longitude], 16);
