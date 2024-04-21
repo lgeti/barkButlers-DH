@@ -11,7 +11,8 @@ const client = new OpenAI({
 async function main(req, res, next) {
     try {
         const userMessage = req.body.message;
-        const imageUrl = "https://i.pinimg.com/736x/3d/90/7f/3d907f72a577dfcb702751b047e201c5.jpg";
+        // const imageUrl = "https://i.pinimg.com/736x/3d/90/7f/3d907f72a577dfcb702751b047e201c5.jpg";
+        const imageUrl = "https://www.miha-jan.com/greg.jpg";
         const location = req.body.location;
         const freeMinutes = req.body.freeMinutes;
 
@@ -20,7 +21,7 @@ async function main(req, res, next) {
             const messages = [
                 {
                     role: "system",
-                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this array ['play video games', 'go for a short walk']. ONLY PICK THE STRING WHICH WOULD MAKE MORE SENSE AND NOTHING ELSE!"
+                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this array ['play video games', 'go for a short walk, 'go to a festival']. If the user have a lot of time, lean more towards the festival option. ONLY PICK THE STRING WHICH WOULD MAKE MORE SENSE AND NOTHING ELSE!"
                 },
                 {
                     role: "user",

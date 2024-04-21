@@ -33,6 +33,10 @@
         <button type="submit">Upload</button>
     </div>
 
+    <div style="width: 100%; display: flex; justify-content: center;">
+        <img style="height: 300px; border-radius: 10px;" src="https://www.miha-jan.com/greg.jpg" alt="">
+    </div>
+
     <div class="card">
         <input id="message_input" type="text" placeholder="your message">
     </div>
@@ -42,22 +46,28 @@
     </div>
 
     <div style="display: flex; justify-content: center;">
-        <button class="button-85" role="button" id="generate">Generate</button>
+        <button class="button-85" role="button" id="generate">Generate✨</button>
+    </div>
+
+    <div id="suggestion" style="display: none;">
+        <h2>Inspiro suggest:</h2>
     </div>
     <p id="response_message"></p>
 
-    
-    
+    <div id="festival"></div>
+
     <div id="map"></div>
-    
-    <div id="alternative" style="display: none;"><h1>Alternative activity:</h1>
+
+    <div id="alternative" style="display: none;">
+        <h1>Alternative activity:</h1>
         <p style="font-size: 20px;" id="alternative_activity"></p>
     </div>
 
-    <div id="joke" style="display: none;"><h1>Joke:</h1>
-    <p id="jokeText"></p>
+    <div id="joke" style="display: none;">
+        <h1>Joke:</h1>
+        <p id="jokeText"></p>
     </div>
-    
+
     <br>
     <p id="info" style="display: none;"><b>Your info:</b></p>
     <p id="message_for_AI"></p>
@@ -201,6 +211,7 @@
                     })
                     .then(data => {
                         console.log('Response from server:', data);
+                        document.getElementById('suggestion').style.display = 'block';
                         document.getElementById('response_message').textContent = data.aiResponse;
                         document.getElementById('info').style.display = 'block';
                         document.getElementById('message_for_AI').textContent = data.messageForAI;
@@ -261,6 +272,70 @@
                         }
                         else if (data.aiResponse === 'play video games') {
                             console.log('play games');
+                        }
+                        else if (data.aiResponse === 'go to a festival') {
+                            document.getElementById('map').style.display = 'none';
+                            function findClosestFutureDateIndex(dates) {
+                                // Parse today's date
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0); // Set hours to 0 for accurate comparison
+
+                                // Filter out past dates and their indexes
+                                const futureDatesWithIndexes = dates
+                                    .map((dateString, index) => ({ date: new Date(dateString), index }))
+                                    .filter(({ date }) => date >= today);
+
+                                // If there are no future dates, return -1
+                                if (futureDatesWithIndexes.length === 0) {
+                                    return -1;
+                                }
+
+                                // Find the closest future date index to today
+                                let closestIndex = futureDatesWithIndexes[0].index;
+                                let closestDiff = Math.abs(futureDatesWithIndexes[0].date - today);
+
+                                futureDatesWithIndexes.forEach(({ date, index }) => {
+                                    const diff = Math.abs(date - today);
+                                    if (diff < closestDiff) {
+                                        closestIndex = index;
+                                        closestDiff = diff;
+                                    }
+                                });
+
+                                return closestIndex;
+                            }
+                            fetch('https://services.kulturnik.si/api/json/csi/festivals', { method: 'GET' })
+                                .then(response => response.json())
+                                .then(res => {
+                                    let dates = [];
+                                    res.items.forEach((item) => {
+                                        dates.push(item._ical_dtstart);
+                                    });
+
+                                    const ind = findClosestFutureDateIndex(dates);
+                                    console.log(res.items[ind]);
+
+                                    const title = document.createElement('h2');
+                                    title.textContent = res.items[ind].title;
+                                    title.style.textAlign = 'center';
+
+                                    const date = document.createElement('p');
+                                    date.textContent = res.items[ind]._ical_dtstart + ' - ' + res.items[ind]._ical_dtend;
+                                    date.style.fontWeight = 'bold';
+
+                                    const desc = document.createElement('p');
+                                    desc.textContent = res.items[ind].content_text;
+                                    
+                                    const img = document.createElement('img');
+                                    img.src = res.items[ind].image;
+                                    img.style.height = '300px';
+
+                                    document.getElementById('festival').appendChild(document.createElement('br'));
+                                    document.getElementById('festival').appendChild(title);
+                                    document.getElementById('festival').appendChild(date);
+                                    document.getElementById('festival').appendChild(desc);
+                                    document.getElementById('festival').appendChild(img);
+                                })
                         }
                         else {
                             console.log('else');
