@@ -6,6 +6,12 @@
         <%= title %>
     </title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -14,11 +20,13 @@
 </head>
 
 <body>
-    <h1>
-        <%= title %>
-    </h1>
-    <p>Welcome to <%= title %>
-    </p>
+    <div style="display: flex; align-items: center; flex-direction: column;">
+        <h1>
+            <%= title %>
+        </h1>
+        <p>Welcome to <%= title %>
+        </p>
+    </div>
 
     <div class="card">
         <input type="file" name="myFile">
@@ -33,7 +41,9 @@
         <input id="vpisna_st" type="text" placeholder="your vpisna st." value="63210116">
     </div>
 
-    <button id="generate">Send</button>
+    <div style="display: flex; justify-content: center;">
+        <button class="button-85" role="button" id="generate">Generate</button>
+    </div>
     <p id="response_message"></p>
 
 
@@ -43,6 +53,42 @@
 
 </body>
 <script>
+    function decodePolyline(polyline) {
+        var index = 0,
+            len = polyline.length,
+            lat = 0,
+            lng = 0,
+            coordinates = [];
+
+        while (index < len) {
+            var b, shift = 0, result = 0;
+
+            do {
+                b = polyline.charCodeAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+
+            var dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+
+            do {
+                b = polyline.charCodeAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+
+            var dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            coordinates.push([lat / 1e5, lng / 1e5]);
+        }
+        return coordinates.map(pair => [pair[0].toFixed(6), pair[1].toFixed(6)]);
+    }
+
     let latitude;
     let longitude;
     window.addEventListener('load', () => {
@@ -101,13 +147,56 @@
                         console.log('Response from server:', data);
                         document.getElementById('response_message').textContent = data.aiResponse;
 
-                        var map = L.map('map').setView([latitude, longitude], 20);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            maxZoom: 19,
-                            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-                        }).addTo(map);
-                        // Assuming trailData is your GeoJSON trail data
-                        // L.geoJSON(trailData).addTo(map);
+                        if (data.aiResponse === 'go for a short walk') {
+                            var map = L.map('map').setView([latitude, longitude], 16);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                maxZoom: 19,
+                                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                            }).addTo(map);
+
+                            const locationPosition = data.nearbyLocations.results[1].position;
+                            const apiKey = '5b3ce3597851110001cf6248346fc3599468482bbb73c2984311ecb5';
+
+                            const requestData = {
+                                coordinates: [[longitude, latitude], [locationPosition.lon, locationPosition.lat]],
+                                elevation: false,
+                                instructions: false,
+                            };
+
+                            let request = new XMLHttpRequest();
+                            request.open('POST', "https://api.openrouteservice.org/v2/directions/foot-hiking");
+
+                            request.setRequestHeader('Accept', 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8');
+                            request.setRequestHeader('Content-Type', 'application/json');
+                            request.setRequestHeader('Authorization', '5b3ce3597851110001cf6248346fc3599468482bbb73c2984311ecb5');
+
+                            let coords;
+                            request.onreadystatechange = function () {
+                                if (this.readyState === 4) {
+                                    const geometry = JSON.parse(this.responseText).routes[0].geometry;
+                                    coords = decodePolyline(geometry);
+
+                                    // map.eachLayer(layer => {
+                                    //     if (layer instanceof L.Polyline) {
+                                    //         map.removeLayer(layer);
+                                    //     }
+                                    // });
+                                    L.polyline(coords).addTo(map);
+                                    const markerStart = new L.marker([longitude, latitude]).addTo(map);
+                                    const markerEnd = new L.marker([locationPosition.lon, locationPosition.lat]).addTo(map);
+                                }
+                            };
+
+                            const body = JSON.stringify(requestData);
+
+                            request.send(body);
+                        }
+                        else if (data.aiResponse === 'play video games') {
+                            console.log('play games');
+                        }
+                        else {
+                            console.log('else');
+                        }
                     })
                     .catch(error => {
                         console.error('Error:', error);

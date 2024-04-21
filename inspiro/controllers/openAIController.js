@@ -20,7 +20,7 @@ async function main(req, res, next) {
             const messages = [
                 {
                     role: "system",
-                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this array ['play video games', 'go for a short walk']. ONLY RESPOND WITH THE STRING IN THE ARRAY AND NOTHING ELSE!"
+                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this array ['play video games', 'go for a short walk']. ONLY PICK THE STRING WHICH WOULD MAKE MORE SENSE AND NOTHING ELSE!"
                 },
                 {
                     role: "user",
@@ -109,13 +109,19 @@ async function main(req, res, next) {
 
             const data = await response.json();
 
-            return data;
+            return data.weather[0].description;
+        }
+
+        const formatMessage = (faceDetectorResponse, weather, userMessage) => {
+            return faceDetectorResponse + 'The weather is:' + weather + '. This is what I am thinking right now: ' + userMessage;
         }
 
         const nearbyLocations = await getNearbyLocations(location);
         const weather = await currentWeather(location);
         const faceDetectorResponse = await faceDetector(imageUrl);
-        const aiResponse = await sendMessageToAI(faceDetectorResponse);
+
+        const messageForAI = formatMessage(faceDetectorResponse, weather, userMessage);
+        const aiResponse = await sendMessageToAI(messageForAI);
 
         res.json({ aiResponse, urnik, faceDetectorResponse, nearbyLocations, weather });
     }
