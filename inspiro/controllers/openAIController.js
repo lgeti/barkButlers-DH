@@ -20,7 +20,7 @@ async function main(req, res, next) {
             const messages = [
                 {
                     role: "system",
-                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this object: {1: 'play video games', 2: 'go for a short walk'}. Your job is to respond with the number representing the action. ONLY THE NUMBER!"
+                    content: "You are a helpful assistant. Based on my profile, decide what should I do right now from this array ['play video games', 'go for a short walk']. ONLY RESPOND WITH THE STRING IN THE ARRAY AND NOTHING ELSE!"
                 },
                 {
                     role: "user",
@@ -39,9 +39,13 @@ async function main(req, res, next) {
 
 
         async function getNearbyLocations(location) {
+            const newLocation = location;
+            newLocation.lat += ((Math.random() * 2) - 1) * 0.01;
+            newLocation.lon += ((Math.random() * 2) - 1) * 0.01;
+
             const apiKey = 'PfqxxmxYJI7jSv825k5xwLYetdp1q3mL';
   
-            const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${apiKey}&lat=${parseFloat(location.lat)}&lon=${parseFloat(location.lon)}`;
+            const url = `https://api.tomtom.com/search/2/nearbySearch/.json?key=${apiKey}&lat=${parseFloat(newLocation.lat)}&lon=${parseFloat(newLocation.lon)}`;
             const response = await fetch(url, {
                 method: 'GET'
             });
